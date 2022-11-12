@@ -1,12 +1,12 @@
 package org.numbers.socket.server;
 
 import org.numbers.socket.exception.TerminationException;
-
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ExceptionHandler implements Thread.UncaughtExceptionHandler {
 
-    private static final Logger applicationLogger = Logger.getLogger(ExceptionHandler.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(ExceptionHandler.class);
 
     private final Server server;
 
@@ -19,9 +19,7 @@ public class ExceptionHandler implements Thread.UncaughtExceptionHandler {
         if (e instanceof TerminationException){
             server.exit();
         } else {
-            //TODO handle????
-            applicationLogger.severe("Exception:" + e.getMessage());
-            e.printStackTrace();
+            logger.error("Unhandled exception", e);
         }
     }
 }

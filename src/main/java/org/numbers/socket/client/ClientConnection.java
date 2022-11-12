@@ -2,6 +2,8 @@ package org.numbers.socket.client;
 
 import org.numbers.socket.exception.ClientConnectionException;
 import org.numbers.socket.exception.TerminationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
@@ -9,11 +11,10 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.logging.Logger;
 
 public class ClientConnection {
 
-    private static final Logger applicationLogger = Logger.getLogger(ClientConnection.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(ClientConnection.class);
 
     //TODO move to properties
     public static final String TERMINATION_SEQUENCE = "terminate";
@@ -26,7 +27,7 @@ public class ClientConnection {
     private boolean alive = true;
 
     public ClientConnection(Socket socket, int clientId) {
-        applicationLogger.info("Connected to client #" + clientId);
+        logger.debug("Connected to client #" + clientId);
         this.clientId = clientId;
         this.socket = socket;
         try {
@@ -37,7 +38,7 @@ public class ClientConnection {
     }
 
     public void close() {
-        applicationLogger.info("Closing connection to client #" + clientId);
+        logger.info("Closing connection to client #" + clientId);
         if (alive) {
             try {
                 alive = false;
@@ -59,7 +60,7 @@ public class ClientConnection {
                 }
                 return Optional.of(line);
             } catch (IOException e) {
-                applicationLogger.info("Can't read from #" + clientId);
+                logger.error("Can't read from #" + clientId);
             }
         }
         return Optional.empty();

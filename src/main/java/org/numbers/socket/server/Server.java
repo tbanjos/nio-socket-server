@@ -4,17 +4,18 @@ import org.numbers.file.FileWriter;
 import org.numbers.socket.client.ClientConnection;
 import org.numbers.socket.client.ClientTask;
 import org.numbers.socket.exception.ApplicationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
 public class Server {
 
-    private static final Logger applicationLogger = Logger.getLogger(Server.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(Server.class);
     private static final String DEFAULT_FILE_NAME = "numbers.log";
     private static final FileWriter fileWriter = new FileWriter(DEFAULT_FILE_NAME);
     private final List<ClientConnection> connections = new ArrayList<>();
@@ -32,10 +33,12 @@ public class Server {
     public void run() {
         while (shouldKeepRunning()) {
             try {
-                Socket socket = server.accept();
-                connectToClient(socket);
+                if (!server.isClosed()) {
+                    Socket socket = server.accept();
+                    connectToClient(socket);
+                }
             } catch (IOException e) {
-                throw new ApplicationException("Exception when waiting for connections");
+                logger.warn("Exception when waiting for connections", e);
             }
 
             //TODO Update statistics
@@ -63,7 +66,7 @@ public class Server {
             connections.forEach(ClientConnection::close);
             server.close();
         } catch (IOException e) {
-            applicationLogger.warning("Exception when trying to close server");
+            logger.warn("Exception when trying to close server", e);
         }
     }
 
