@@ -9,6 +9,7 @@ import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -19,54 +20,54 @@ public class ClientConnection {
     //TODO move to properties
     public static final String TERMINATION_SEQUENCE = "terminate";
     private final Socket socket;
-
-    private DataInputStream in = null;
+    private final DataInputStream inputStream;
 
     private final int clientId;
-
-    private boolean alive = true;
 
     public ClientConnection(Socket socket, int clientId) {
         logger.debug("Connected to client #" + clientId);
         this.clientId = clientId;
         this.socket = socket;
         try {
-            in = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
+            inputStream = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
     public void close() {
-        logger.info("Closing connection to client #" + clientId);
-        if (alive) {
+        logger.debug("Closing connection to client #" + clientId);
+        if (isAlive()) {
             try {
-                alive = false;
-                in.close();
+                inputStream.close();
                 socket.close();
             } catch (IOException e) {
-                //TODO handle ???
-                throw new RuntimeException(e);
+                logger.error("Exception when closing client #" + clientId, e);
             }
         }
+        logger.debug("closed #" + clientId);
     }
 
     public Optional<String> readLine() throws ClientConnectionException {
+        logger.info("Reading from client #" + clientId);
         if (isAlive()) {
             try {
-                String line = in.readLine();
+                String line = inputStream.readLine();
                 if (Objects.equals(line, TERMINATION_SEQUENCE)) {
+                    logger.info("Termination sequence received from client #" + clientId);
                     throw new TerminationException();
                 }
-                return Optional.of(line);
+                return Optional.ofNullable(line);
+            } catch (SocketException e) {
+               logger.debug("Connection with #" + clientId + " closed while waiting for input");
             } catch (IOException e) {
-                logger.error("Can't read from #" + clientId);
+               logger.error("Can't read from #" + clientId, e);
             }
         }
         return Optional.empty();
     }
 
     public boolean isAlive() {
-        return alive;
+        return !socket.isClosed();
     }
 }

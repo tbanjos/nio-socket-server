@@ -31,29 +31,30 @@ public class Server {
     }
 
     public void run() {
-        while (shouldKeepRunning()) {
-            try {
-                if (!server.isClosed()) {
-                    Socket socket = server.accept();
-                    connectToClient(socket);
-                }
-            } catch (IOException e) {
-                logger.warn("Exception when waiting for connections", e);
+        try {
+            while (serverIsAlive()) {
+                Socket socket = server.accept();
+                connectToClient(socket);
             }
+            server.close();
+        } catch (IOException e) {
+            logger.warn("Exception when waiting for connections", e);
+        }
 
             //TODO Update statistics
 
             //TODO print statistics every 10 sec
-        }
     }
 
     private void connectToClient(Socket socket) {
         //TODO Limit thread numbers
-        ClientConnection connection = new ClientConnection(socket, connections.size());
-        connections.add(connection);
-        Thread t1 = new Thread(createTask(connection));
-        t1.setUncaughtExceptionHandler(new ExceptionHandler(this));
-        t1.start();
+        if (serverIsAlive()) {
+            ClientConnection connection = new ClientConnection(socket, connections.size());
+            connections.add(connection);
+            Thread t1 = new Thread(createTask(connection));
+            t1.setUncaughtExceptionHandler(new ExceptionHandler(this));
+            t1.start();
+        }
     }
 
     private static Runnable createTask(ClientConnection connection) {
@@ -61,16 +62,13 @@ public class Server {
     }
 
     public void exit() {
+        logger.info("Closing server ...");
         signalReceived = true;
-        try {
-            connections.forEach(ClientConnection::close);
-            server.close();
-        } catch (IOException e) {
-            logger.warn("Exception when trying to close server", e);
-        }
+        connections.forEach(ClientConnection::close);
+        System.exit(0);
     }
 
-    private boolean shouldKeepRunning() {
+    private boolean serverIsAlive() {
         return !signalReceived;
     }
 }
