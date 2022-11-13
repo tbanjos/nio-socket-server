@@ -8,6 +8,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.numbers.file.FileWriter;
+import org.numbers.file.InputValidator;
 import org.numbers.server.Connection;
 
 import java.util.Optional;
@@ -25,6 +26,9 @@ class ClientTaskTest {
     @Mock
     FileWriter fileWriter;
 
+    @Mock
+    InputValidator validator;
+
     @InjectMocks
     ClientTask clientTask;
 
@@ -34,9 +38,10 @@ class ClientTaskTest {
     }
 
     @Test
-    void shouldReadAndWriteValue() {
+    void shouldWriteValidValue() {
         String valueRead = "valueRead";
         when(connection.read()).thenReturn(Optional.of(valueRead));
+        when(validator.isValid(anyString())).thenReturn(true);
 
         clientTask.run();
 
@@ -44,12 +49,25 @@ class ClientTaskTest {
     }
 
     @Test
-    void shouldNotWriteEmptyValue() {
+    void shouldIgnoreEmptyValue() {
         when(connection.read()).thenReturn(Optional.empty());
 
         clientTask.run();
 
+        verify(validator, never()).isValid(anyString());
         verify(fileWriter, never()).write(anyString());
+    }
+
+    @Test
+    void shouldCloseConnectionWhenInvalidValue() {
+        String valueRead = "somethingNotValid";
+        when(connection.read()).thenReturn(Optional.of(valueRead));
+        when(validator.isValid(valueRead)).thenReturn(false);
+
+        clientTask.run();
+
+        verify(fileWriter, never()).write(valueRead);
+        verify(connection).close();
     }
 
     @Test

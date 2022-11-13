@@ -4,9 +4,7 @@ import org.numbers.exception.TerminationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedInputStream;
-import java.io.DataInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.Objects;
@@ -21,17 +19,16 @@ public class Connection {
     //TODO move to properties
     public static final String TERMINATION_SEQUENCE = "terminate";
     private final Socket socket;
-    private final DataInputStream inputStream;
 
-    private final int clientId;
+    private BufferedReader reader;
 
     public Connection(Socket socket, int clientId) {
+        //TODO add prefix to logger
         LOG_PREFIX = "Client #".concat(String.valueOf(clientId)).concat(" | ");
         logger.debug(LOG_PREFIX + "Connected");
-        this.clientId = clientId;
         this.socket = socket;
         try {
-            inputStream = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
+            reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -41,7 +38,7 @@ public class Connection {
         logger.debug(LOG_PREFIX + "Closing connection");
         if (isAlive()) {
             try {
-                inputStream.close();
+                reader.close();
                 socket.close();
             } catch (IOException e) {
                 logger.error(LOG_PREFIX + "Exception", e);
@@ -54,7 +51,7 @@ public class Connection {
         logger.debug(LOG_PREFIX + "Waiting from input");
         if (isAlive()) {
             try {
-                String line = inputStream.readLine();
+                String line = reader.readLine();
                 logger.debug(LOG_PREFIX + "Input received: " + line);
                 if (Objects.equals(line, TERMINATION_SEQUENCE)) {
                     logger.info(LOG_PREFIX + "Termination sequence received");
