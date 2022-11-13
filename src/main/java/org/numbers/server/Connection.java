@@ -4,9 +4,10 @@ import org.numbers.exception.TerminationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
-import java.net.Socket;
-import java.net.SocketException;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.ClosedChannelException;
+import java.nio.channels.SocketChannel;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -18,47 +19,39 @@ public class Connection {
 
     //TODO move to properties
     public static final String TERMINATION_SEQUENCE = "terminate";
-    private final Socket socket;
+    private final SocketChannel channel;
 
-    private BufferedReader reader;
+    //private final BufferedReader reader;
 
-    public Connection(Socket socket, int clientId) {
+    public Connection(SocketChannel channel, int clientId) {
         //TODO add prefix to logger
         LOG_PREFIX = "Client #".concat(String.valueOf(clientId)).concat(" | ");
         logger.debug(LOG_PREFIX + "Connected");
-        this.socket = socket;
-        try {
-            reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        this.channel = channel;
     }
 
     public void close() {
         logger.debug(LOG_PREFIX + "Closing connection");
         if (isAlive()) {
             try {
-                reader.close();
-                socket.close();
+                channel.close();
             } catch (IOException e) {
                 logger.error(LOG_PREFIX + "Exception", e);
             }
+            logger.debug(LOG_PREFIX + "Closed");
+        } else{
+            logger.debug(LOG_PREFIX + "Already closed");
         }
-        logger.debug(LOG_PREFIX + "Closed");
     }
 
     public Optional<String> read() {
         logger.debug(LOG_PREFIX + "Waiting from input");
         if (isAlive()) {
             try {
-                String line = reader.readLine();
-                logger.debug(LOG_PREFIX + "Input received: " + line);
-                if (Objects.equals(line, TERMINATION_SEQUENCE)) {
-                    logger.info(LOG_PREFIX + "Termination sequence received");
-                    throw new TerminationException();
-                }
-                return Optional.ofNullable(line);
-            } catch (SocketException e) {
+                String line = readLine();
+                checkTermination(line);
+                return Optional.of(line);
+            } catch (ClosedChannelException e) {
                logger.debug(LOG_PREFIX + "Connection closed while waiting for input");
             } catch (IOException e) {
                logger.error(LOG_PREFIX + "Exception when reading", e);
@@ -67,7 +60,25 @@ public class Connection {
         return Optional.empty();
     }
 
+    private void checkTermination(String line) throws IOException {
+        if (Objects.equals(line, TERMINATION_SEQUENCE)) {
+            channel.close();
+            logger.info(LOG_PREFIX + "Termination sequence received");
+            throw new TerminationException();
+        }
+    }
+
+    private String readLine() throws IOException {
+        ByteBuffer buffer = ByteBuffer.allocate(1024);
+        int numRead = channel.read(buffer);
+        byte[] data = new byte[numRead];
+        System.arraycopy(buffer.array(), 0, data, 0, numRead);
+        String line = new String(data).trim();
+        logger.debug(LOG_PREFIX + "Input received: " + line);
+        return line;
+    }
+
     public boolean isAlive() {
-        return !socket.isClosed();
+        return channel.isConnected();
     }
 }
