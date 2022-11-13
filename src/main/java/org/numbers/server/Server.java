@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,25 +27,23 @@ public class Server {
         }
     }
 
-    public void run() {
+    public void acceptConnections() {
         try {
-            while (serverIsAlive()) {
-                Socket socket = server.accept();
-                connect(socket);
-            }
-            server.close();
+            connect(server.accept());
+        } catch (SocketException e) {
+            logger.debug("Trying to connect to closed server");
         } catch (IOException e) {
             logger.warn("Exception when waiting for connections", e);
         }
 
-            //TODO Update statistics
+        //TODO Update statistics
 
-            //TODO print statistics every 10 sec
+        //TODO print statistics every 10 sec
     }
 
     private void connect(Socket socket) {
         //TODO Limit thread numbers
-        if (serverIsAlive()) {
+        if (isAlive()) {
             Connection connection = new Connection(socket, connections.size());
             connections.add(connection);
             Thread t1 = new Thread(createTask(connection));
@@ -58,13 +57,18 @@ public class Server {
     }
 
     public void exit() {
-        logger.info("Closing server ...");
+        logger.info("Closing server ... ");
         signalReceived = true;
         connections.forEach(Connection::close);
+        try {
+            server.close();
+        } catch (IOException e) {
+            logger.warn("Exception when closing the server");
+        }
         System.exit(0);
     }
 
-    private boolean serverIsAlive() {
+    public boolean isAlive() {
         return !signalReceived;
     }
 }

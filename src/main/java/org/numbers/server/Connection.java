@@ -16,6 +16,8 @@ public class Connection {
 
     private static final Logger logger = LoggerFactory.getLogger(Connection.class);
 
+    private static String LOG_PREFIX;
+
     //TODO move to properties
     public static final String TERMINATION_SEQUENCE = "terminate";
     private final Socket socket;
@@ -24,7 +26,8 @@ public class Connection {
     private final int clientId;
 
     public Connection(Socket socket, int clientId) {
-        logger.debug("Connected to client #" + clientId);
+        LOG_PREFIX = "Client #".concat(String.valueOf(clientId)).concat(" | ");
+        logger.debug(LOG_PREFIX + "Connected");
         this.clientId = clientId;
         this.socket = socket;
         try {
@@ -35,32 +38,33 @@ public class Connection {
     }
 
     public void close() {
-        logger.debug("Closing connection to client #" + clientId);
+        logger.debug(LOG_PREFIX + "Closing connection");
         if (isAlive()) {
             try {
                 inputStream.close();
                 socket.close();
             } catch (IOException e) {
-                logger.error("Exception when closing client #" + clientId, e);
+                logger.error(LOG_PREFIX + "Exception", e);
             }
         }
-        logger.debug("closed #" + clientId);
+        logger.debug(LOG_PREFIX + "Closed");
     }
 
     public Optional<String> read() {
-        logger.info("Reading from client #" + clientId);
+        logger.debug(LOG_PREFIX + "Waiting from input");
         if (isAlive()) {
             try {
                 String line = inputStream.readLine();
+                logger.debug(LOG_PREFIX + "Input received: " + line);
                 if (Objects.equals(line, TERMINATION_SEQUENCE)) {
-                    logger.info("Termination sequence received from client #" + clientId);
+                    logger.info(LOG_PREFIX + "Termination sequence received");
                     throw new TerminationException();
                 }
                 return Optional.ofNullable(line);
             } catch (SocketException e) {
-               logger.debug("Connection with #" + clientId + " closed while waiting for input");
+               logger.debug(LOG_PREFIX + "Connection closed while waiting for input");
             } catch (IOException e) {
-               logger.error("Can't read from #" + clientId, e);
+               logger.error(LOG_PREFIX + "Exception when reading", e);
             }
         }
         return Optional.empty();

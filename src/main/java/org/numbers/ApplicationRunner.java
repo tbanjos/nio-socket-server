@@ -14,7 +14,9 @@ public class ApplicationRunner {
     public static void main(String[] args)
     {
         Server server = new Server(resolvePortNumber(args));
-        server.run();
+        while (server.isAlive()) {
+            server.acceptConnections();
+        }
     }
 
     private static int resolvePortNumber(String[] args) {

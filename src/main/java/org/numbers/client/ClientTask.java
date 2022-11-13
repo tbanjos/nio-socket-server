@@ -7,17 +7,21 @@ public class ClientTask implements Runnable {
 
     private static final String DEFAULT_FILE_NAME = "numbers.log";
 
-    private final FileWriter fileWriter;
+    private static FileWriter fileWriter;
 
     private final Connection connection;
 
     public ClientTask(Connection connection) {
-        this (connection, new FileWriter(DEFAULT_FILE_NAME));
+        this.connection = connection;
+        //TODO this is ugly, solve this problem
+        if (fileWriter == null) {
+            fileWriter = new FileWriter(DEFAULT_FILE_NAME);
+        }
     }
 
     public ClientTask(Connection connection, FileWriter fileWriter) {
         this.connection = connection;
-        this.fileWriter = fileWriter;
+        ClientTask.fileWriter = fileWriter;
     }
 
     @Override
