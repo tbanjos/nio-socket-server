@@ -23,7 +23,7 @@ public class Server {
         try {
             server = new ServerSocket(port);
         } catch (IOException e) {
-            throw new ApplicationException("Can't create server");
+            throw new ApplicationException("Can't create server", e);
         }
     }
 
