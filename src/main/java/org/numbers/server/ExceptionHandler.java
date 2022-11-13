@@ -1,6 +1,6 @@
-package org.numbers.socket.server;
+package org.numbers.server;
 
-import org.numbers.socket.exception.TerminationException;
+import org.numbers.exception.TerminationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

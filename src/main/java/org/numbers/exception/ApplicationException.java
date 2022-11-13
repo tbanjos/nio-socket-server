@@ -1,4 +1,4 @@
-package org.numbers.socket.exception;
+package org.numbers.exception;
 
 public class ApplicationException extends RuntimeException{
 

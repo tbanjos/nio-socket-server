@@ -9,14 +9,13 @@ public class FileWriter {
     public FileWriter(String fileName) {
         FileHandler fh;
         try {
-            fh = new FileHandler(fileName);
+            fh = new FileHandler(fileName, true);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
         fh.setFormatter(getFormatter());
         fileLogger.setUseParentHandlers(false);
         fileLogger.addHandler(fh);
-        //fileLogger.setLevel(Level.INFO);
     }
 
     private static Formatter getFormatter() {

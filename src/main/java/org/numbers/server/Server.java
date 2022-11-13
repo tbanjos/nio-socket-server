@@ -1,9 +1,7 @@
-package org.numbers.socket.server;
+package org.numbers.server;
 
-import org.numbers.file.FileWriter;
-import org.numbers.socket.client.ClientConnection;
-import org.numbers.socket.client.ClientTask;
-import org.numbers.socket.exception.ApplicationException;
+import org.numbers.client.ClientTask;
+import org.numbers.exception.ApplicationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,9 +14,7 @@ import java.util.List;
 public class Server {
 
     private static final Logger logger = LoggerFactory.getLogger(Server.class);
-    private static final String DEFAULT_FILE_NAME = "numbers.log";
-    private static final FileWriter fileWriter = new FileWriter(DEFAULT_FILE_NAME);
-    private final List<ClientConnection> connections = new ArrayList<>();
+    private final List<Connection> connections = new ArrayList<>();
     private final ServerSocket server;
     private boolean signalReceived;
 
@@ -34,7 +30,7 @@ public class Server {
         try {
             while (serverIsAlive()) {
                 Socket socket = server.accept();
-                connectToClient(socket);
+                connect(socket);
             }
             server.close();
         } catch (IOException e) {
@@ -46,10 +42,10 @@ public class Server {
             //TODO print statistics every 10 sec
     }
 
-    private void connectToClient(Socket socket) {
+    private void connect(Socket socket) {
         //TODO Limit thread numbers
         if (serverIsAlive()) {
-            ClientConnection connection = new ClientConnection(socket, connections.size());
+            Connection connection = new Connection(socket, connections.size());
             connections.add(connection);
             Thread t1 = new Thread(createTask(connection));
             t1.setUncaughtExceptionHandler(new ExceptionHandler(this));
@@ -57,14 +53,14 @@ public class Server {
         }
     }
 
-    private static Runnable createTask(ClientConnection connection) {
-        return new ClientTask(connection, fileWriter);
+    private static Runnable createTask(Connection connection) {
+        return new ClientTask(connection);
     }
 
     public void exit() {
         logger.info("Closing server ...");
         signalReceived = true;
-        connections.forEach(ClientConnection::close);
+        connections.forEach(Connection::close);
         System.exit(0);
     }
 

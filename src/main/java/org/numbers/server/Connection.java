@@ -1,7 +1,6 @@
-package org.numbers.socket.client;
+package org.numbers.server;
 
-import org.numbers.socket.exception.ClientConnectionException;
-import org.numbers.socket.exception.TerminationException;
+import org.numbers.exception.TerminationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,9 +12,9 @@ import java.net.SocketException;
 import java.util.Objects;
 import java.util.Optional;
 
-public class ClientConnection {
+public class Connection {
 
-    private static final Logger logger = LoggerFactory.getLogger(ClientConnection.class);
+    private static final Logger logger = LoggerFactory.getLogger(Connection.class);
 
     //TODO move to properties
     public static final String TERMINATION_SEQUENCE = "terminate";
@@ -24,7 +23,7 @@ public class ClientConnection {
 
     private final int clientId;
 
-    public ClientConnection(Socket socket, int clientId) {
+    public Connection(Socket socket, int clientId) {
         logger.debug("Connected to client #" + clientId);
         this.clientId = clientId;
         this.socket = socket;
@@ -48,7 +47,7 @@ public class ClientConnection {
         logger.debug("closed #" + clientId);
     }
 
-    public Optional<String> readLine() throws ClientConnectionException {
+    public Optional<String> read() {
         logger.info("Reading from client #" + clientId);
         if (isAlive()) {
             try {

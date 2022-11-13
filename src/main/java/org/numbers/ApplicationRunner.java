@@ -1,7 +1,7 @@
 package org.numbers;
 
 
-import org.numbers.socket.server.Server;
+import org.numbers.server.Server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
