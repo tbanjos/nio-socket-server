@@ -17,14 +17,12 @@ import java.util.List;
 
 public class Server {
 
-    private static final String DEFAULT_FILE_NAME = "numbers.log";
     private static final Logger logger = LoggerFactory.getLogger(Server.class);
-    private final FileWriter fileWriter = new FileWriter(DEFAULT_FILE_NAME);
+    private final FileWriter fileWriter = new FileWriter();
     private final InputValidator validator = new InputValidator();
     private final List<Connection> connections = new ArrayList<>();
     private final ServerSocketChannel server;
     private boolean signalReceived;
-
 
     public Server(int port) {
         try {
