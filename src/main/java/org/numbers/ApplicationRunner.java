@@ -7,6 +7,10 @@ import org.numbers.server.Server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
 public class ApplicationRunner {
 
     private static final Logger logger = LoggerFactory.getLogger(ApplicationRunner.class);
@@ -15,10 +19,21 @@ public class ApplicationRunner {
 
     public static void main(String[] args)
     {
-        NumberFileWriter writer = new NumberFileWriter();
-        NumberValidator validator = new NumberValidator();
-        Server server = new Server(resolvePortNumber(args), writer, validator);
-        server.run();
+        recreateFile();
+        var writer = new NumberFileWriter();
+        var validator = new NumberValidator();
+        new Server(resolvePortNumber(args), writer, validator).run();
+    }
+
+    private static void recreateFile() {
+        var numbersFile = new File("numbers.log");
+        try {
+            if(numbersFile.exists()){
+                new FileOutputStream("numbers.log").close();
+            }
+        } catch (IOException e) {
+            logger.error("Error trying to clean file", e);
+        }
     }
 
     private static int resolvePortNumber(String[] args) {

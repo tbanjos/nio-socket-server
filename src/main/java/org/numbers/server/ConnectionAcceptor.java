@@ -3,8 +3,6 @@ package org.numbers.server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.channels.SocketChannel;
-
 public class ConnectionAcceptor implements Runnable{
 
     private static final Logger logger = LoggerFactory.getLogger(Server.class);
@@ -19,7 +17,7 @@ public class ConnectionAcceptor implements Runnable{
     public void run() {
         while (server.isAlive()) {
             try {
-                SocketChannel channel = server.accept();
+                var channel = server.accept();
                 if (channel != null) {
                     server.connect(channel);
                 }

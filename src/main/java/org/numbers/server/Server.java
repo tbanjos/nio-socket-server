@@ -31,7 +31,6 @@ public class Server {
             server = ServerSocketChannel.open();
             server.bind(new InetSocketAddress(port));
             server.configureBlocking(false);
-            //TODO recreate file
         } catch (IOException e) {
             throw new ApplicationException("Can't create server", e);
         }
@@ -57,10 +56,10 @@ public class Server {
     }
 
     public void run() {
-        Thread acceptanceTask = new Thread(new ConnectionAcceptor(this));
+        var acceptanceTask = new Thread(new ConnectionAcceptor(this));
         acceptanceTask.setUncaughtExceptionHandler(new ExceptionHandler(this));
 
-        Thread processingTask = new Thread(new ConnectionProcessor(connections, validator, writer, () -> true));
+        var processingTask = new Thread(new ConnectionProcessor(connections, validator, writer, () -> true));
         processingTask.setUncaughtExceptionHandler(new ExceptionHandler(this));
 
         acceptanceTask.start();
@@ -72,7 +71,7 @@ public class Server {
             if (channel != null) {
                 try {
                     channel.configureBlocking(false);
-                    String id = "Client #" + (connections.size() + 1);
+                    var id = "Client #" + (connections.size() + 1);
                     Connection connection = new Connection(channel, id);
                     connections.put(id, connection);
                 } catch (IOException e) {

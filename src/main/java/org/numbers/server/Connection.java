@@ -63,11 +63,11 @@ public class Connection {
     }
 
     private Optional<String> readLine() throws IOException {
-        ByteBuffer buffer = ByteBuffer.allocate(1024);
+        var buffer = ByteBuffer.allocate(1024);
         int numRead = channel.read(buffer);
         byte[] data = new byte[numRead];
         System.arraycopy(buffer.array(), 0, data, 0, numRead);
-        String line = new String(data).trim();
+        var line = new String(data).trim();
         if (line.isEmpty()) {
             return Optional.empty();
         }
