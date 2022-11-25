@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 
 public class FileWriter {
 
-    private static final String DEFAULT_LOG_NAME = "numbersLog";
+    private static final String DEFAULT_LOG_NAME = "NUMBERS";
 
     private final Logger fileLogger;
 

@@ -17,7 +17,7 @@ class FileWriterTest {
     static final String TEST_FILE_NAME = "test_file.txt";
     static Path testFilePath = Paths.get(TEST_FILE_NAME);
 
-    static FileWriter fileWriter = new FileWriter("logfile");
+    static FileWriter fileWriter = new FileWriter("TEST");
 
     @AfterAll
     static void tearDown(){
@@ -40,7 +40,7 @@ class FileWriterTest {
 
     @Test
     void shouldNotWriteToFileWhenUsingDifferentLog() throws IOException {
-        Logger logger = LoggerFactory.getLogger("aDifferentLog");
+        Logger logger = LoggerFactory.getLogger(FileWriterTest.class);
 
         logger.info("somethingElse");
 
