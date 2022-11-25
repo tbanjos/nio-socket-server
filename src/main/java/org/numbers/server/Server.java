@@ -3,9 +3,9 @@ package org.numbers.server;
 import org.numbers.exception.ApplicationException;
 import org.numbers.exception.ExceptionHandler;
 import org.numbers.message.MessageProcessor;
-import org.numbers.message.MessageChannel;
+import org.numbers.message.MessageProducer;
 import org.numbers.message.MessageValidator;
-import org.numbers.message.MessageWriter;
+import org.numbers.message.MessageConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,13 +19,13 @@ import java.util.concurrent.ArrayBlockingQueue;
 public class Server {
 
     private static final Logger logger = LoggerFactory.getLogger(Server.class);
-    private final MessageWriter writer;
+    private final MessageConsumer writer;
     private final MessageValidator validator;
     private final ServerSocketChannel server;
-    private final Queue<MessageChannel> connectionQueue = new ArrayBlockingQueue<>(5);
+    private final Queue<MessageProducer> connectionQueue = new ArrayBlockingQueue<>(5);
     private boolean signalReceived;
 
-    public Server(int port, MessageWriter writer, MessageValidator validator) {
+    public Server(int port, MessageConsumer writer, MessageValidator validator) {
         this.writer = writer;
         this.validator = validator;
         try {

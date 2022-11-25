@@ -1,7 +1,7 @@
 package org.numbers.server;
 
 import org.numbers.exception.TerminationException;
-import org.numbers.message.MessageChannel;
+import org.numbers.message.MessageProducer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,13 +12,12 @@ import java.nio.channels.SocketChannel;
 import java.util.Objects;
 import java.util.Optional;
 
-public class ClientConnection implements MessageChannel {
+public class ClientConnection implements MessageProducer {
 
     private static final Logger logger = LoggerFactory.getLogger(ClientConnection.class);
 
     private final String LOG_PREFIX;
 
-    //TODO move to properties
     public static final String TERMINATION_SEQUENCE = "terminate";
     private final SocketChannel channel;
 

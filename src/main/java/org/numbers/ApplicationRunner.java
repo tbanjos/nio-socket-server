@@ -1,7 +1,7 @@
 package org.numbers;
 
 
-import org.numbers.file.NumberFileWriter;
+import org.numbers.file.NumberFileConsumer;
 import org.numbers.file.NumberValidator;
 import org.numbers.server.Server;
 import org.slf4j.Logger;
@@ -15,12 +15,12 @@ public class ApplicationRunner {
 
     private static final Logger logger = LoggerFactory.getLogger(ApplicationRunner.class);
 
-    private static final int DEFAULT_PORT = 4000;   //TODO move to properties file
+    private static final int DEFAULT_PORT = 4000;
 
     public static void main(String[] args)
     {
         recreateFile();
-        var writer = new NumberFileWriter();
+        var writer = new NumberFileConsumer();
         var validator = new NumberValidator();
         var server = new Server(resolvePortNumber(args), writer, validator);
         server.run();

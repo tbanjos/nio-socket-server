@@ -3,7 +3,7 @@ package org.numbers.server;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.numbers.file.NumberFileWriter;
+import org.numbers.file.NumberFileConsumer;
 import org.numbers.file.NumberValidator;
 
 class ServerIntegrationTest {
@@ -18,15 +18,15 @@ class ServerIntegrationTest {
 
     @Test
     void run() {
-        NumberFileWriter writer = new NumberFileWriter();
+        NumberFileConsumer writer = new NumberFileConsumer();
         NumberValidator validator = new NumberValidator();
         Server testServer = new Server(3333, writer, validator);
         testServer.run();
-//        try {
-//            Thread.sleep(10000);
-//        } catch (InterruptedException e) {
-//            throw new RuntimeException(e);
-//        }
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
         testServer.exit();
     }
 }

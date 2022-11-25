@@ -5,14 +5,14 @@ import java.util.function.BooleanSupplier;
 
 public class MessageProcessor implements Runnable {
 
-    private final MessageWriter writer;
+    private final MessageConsumer writer;
     private final MessageValidator validator;
-    private final Queue<MessageChannel> channels;
+    private final Queue<MessageProducer> channels;
     private final BooleanSupplier shouldProcess;
 
-    public MessageProcessor(Queue<MessageChannel> channels,
+    public MessageProcessor(Queue<MessageProducer> channels,
                             MessageValidator validator,
-                            MessageWriter writer,
+                            MessageConsumer writer,
                             BooleanSupplier shouldProcess) {
         this.channels = channels;
         this.validator = validator;

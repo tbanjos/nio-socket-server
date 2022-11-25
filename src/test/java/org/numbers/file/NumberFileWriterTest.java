@@ -17,7 +17,7 @@ class NumberFileWriterTest {
     static final String TEST_FILE_NAME = "test_file.txt";
     static Path testFilePath = Paths.get(TEST_FILE_NAME);
 
-    static NumberFileWriter numberFileWriter = new NumberFileWriter("TEST");
+    static NumberFileConsumer numberFileWriter = new NumberFileConsumer("TEST");
 
     @AfterAll
     static void tearDown(){

@@ -7,10 +7,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.numbers.file.NumberFileWriter;
+import org.numbers.file.NumberFileConsumer;
 import org.numbers.file.NumberValidator;
 import org.numbers.message.MessageProcessor;
-import org.numbers.message.MessageChannel;
+import org.numbers.message.MessageProducer;
 
 import java.util.Optional;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -25,7 +25,7 @@ class MessageProcessorTest {
     ClientConnection clientConnection;
 
     @Mock
-    NumberFileWriter numberFileWriter;
+    NumberFileConsumer numberFileWriter;
 
     @Mock
     NumberValidator validator;
@@ -39,7 +39,7 @@ class MessageProcessorTest {
     @BeforeEach
     void setUp() {
         when(clientConnection.isOpen()).thenReturn(true, true, false);
-        var queue = new ArrayBlockingQueue<MessageChannel>(1);
+        var queue = new ArrayBlockingQueue<MessageProducer>(1);
         queue.add(clientConnection);
         messageProcessor = new MessageProcessor(queue, validator, numberFileWriter, () -> clientConnection.isOpen());
     }

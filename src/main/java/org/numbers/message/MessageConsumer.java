@@ -1,6 +1,6 @@
 package org.numbers.message;
 
-public interface MessageWriter {
+public interface MessageConsumer {
 
     void write(String message);
 
