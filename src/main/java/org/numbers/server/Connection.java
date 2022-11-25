@@ -15,17 +15,15 @@ public class Connection {
 
     private static final Logger logger = LoggerFactory.getLogger(Connection.class);
 
-    private static String LOG_PREFIX;
+    private final String LOG_PREFIX;
 
     //TODO move to properties
     public static final String TERMINATION_SEQUENCE = "terminate";
     private final SocketChannel channel;
 
-    //private final BufferedReader reader;
-
-    public Connection(SocketChannel channel, int clientId) {
+    public Connection(SocketChannel channel, String clientId) {
         //TODO add prefix to logger
-        LOG_PREFIX = "Client #".concat(String.valueOf(clientId)).concat(" | ");
+        LOG_PREFIX = clientId.concat(" | ");
         logger.debug(LOG_PREFIX + "Connected");
         this.channel = channel;
     }
@@ -45,17 +43,13 @@ public class Connection {
     }
 
     public Optional<String> read() {
-        logger.debug(LOG_PREFIX + "Waiting from input");
-        if (isAlive()) {
-            try {
-                String line = readLine();
-                checkTermination(line);
-                return Optional.of(line);
-            } catch (ClosedChannelException e) {
-               logger.debug(LOG_PREFIX + "Connection closed while waiting for input");
-            } catch (IOException e) {
-               logger.error(LOG_PREFIX + "Exception when reading", e);
-            }
+        try {
+            logger.debug(LOG_PREFIX + "Trying to read");
+            return readLine();
+        } catch (ClosedChannelException e) {
+            logger.debug(LOG_PREFIX + "Connection closed while waiting for input");
+        } catch (IOException e) {
+            logger.error(LOG_PREFIX + "Exception when reading", e);
         }
         return Optional.empty();
     }
@@ -68,14 +62,18 @@ public class Connection {
         }
     }
 
-    private String readLine() throws IOException {
+    private Optional<String> readLine() throws IOException {
         ByteBuffer buffer = ByteBuffer.allocate(1024);
         int numRead = channel.read(buffer);
         byte[] data = new byte[numRead];
         System.arraycopy(buffer.array(), 0, data, 0, numRead);
         String line = new String(data).trim();
+        if (line.isEmpty()) {
+            return Optional.empty();
+        }
         logger.debug(LOG_PREFIX + "Input received: " + line);
-        return line;
+        checkTermination(line);
+        return Optional.of(line);
     }
 
     public boolean isAlive() {

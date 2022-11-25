@@ -4,13 +4,15 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.numbers.file.NumberFileWriter;
 import org.numbers.file.NumberValidator;
 import org.numbers.server.Connection;
+import org.numbers.server.ConnectionProcessor;
 
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -18,8 +20,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class ClientTaskTest {
-
+class ConnectionProcessorTest {
     @Mock
     Connection connection;
 
@@ -29,12 +30,16 @@ class ClientTaskTest {
     @Mock
     NumberValidator validator;
 
-    @InjectMocks
-    ClientTask clientTask;
+    ConnectionProcessor connectionProcessor;
+
+    ConnectionProcessorTest(){
+        MockitoAnnotations.openMocks(this);
+    }
 
     @BeforeEach
-    void setUp(){
+    void setUp() {
         when(connection.isAlive()).thenReturn(true, true, false);
+        connectionProcessor = new ConnectionProcessor(Map.of("test", connection), validator, numberFileWriter, () -> connection.isAlive());
     }
 
     @Test
@@ -43,16 +48,16 @@ class ClientTaskTest {
         when(connection.read()).thenReturn(Optional.of(valueRead));
         when(validator.isValid(anyString())).thenReturn(true);
 
-        clientTask.run();
+        connectionProcessor.run();
 
-        verify(numberFileWriter, times(2)).write(valueRead);
+        verify(numberFileWriter).write(valueRead);
     }
 
     @Test
     void shouldIgnoreEmptyValue() {
         when(connection.read()).thenReturn(Optional.empty());
 
-        clientTask.run();
+        connectionProcessor.run();
 
         verify(validator, never()).isValid(anyString());
         verify(numberFileWriter, never()).write(anyString());
@@ -64,7 +69,7 @@ class ClientTaskTest {
         when(connection.read()).thenReturn(Optional.of(valueRead));
         when(validator.isValid(valueRead)).thenReturn(false);
 
-        clientTask.run();
+        connectionProcessor.run();
 
         verify(numberFileWriter, never()).write(valueRead);
         verify(connection).close();
@@ -75,7 +80,7 @@ class ClientTaskTest {
         String exceptionMessage = "something went wrong";
         when(connection.read()).thenThrow(new RuntimeException(exceptionMessage));
 
-        RuntimeException thrown = Assertions.assertThrows(RuntimeException.class, () -> clientTask.run());
+        RuntimeException thrown = Assertions.assertThrows(RuntimeException.class, () -> connectionProcessor.run());
 
         assertEquals(exceptionMessage, thrown.getMessage());
         verify(numberFileWriter, never()).write(anyString());
@@ -85,7 +90,7 @@ class ClientTaskTest {
     void shouldNotReadWhenConnectionIsClosed() {
         when(connection.isAlive()).thenReturn( false);
 
-        clientTask.run();
+        connectionProcessor.run();
 
         verify(connection, never()).read();
         verify(numberFileWriter, never()).write(anyString());

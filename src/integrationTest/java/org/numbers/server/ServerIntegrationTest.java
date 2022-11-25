@@ -18,13 +18,15 @@ class ServerIntegrationTest {
 
     @Test
     void run() {
-        Server testServer = new Server(3333, new NumberFileWriter(), new NumberValidator());
-        testServer.acceptConnections();
-        try {
-            Thread.sleep(10000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        NumberFileWriter writer = new NumberFileWriter();
+        NumberValidator validator = new NumberValidator();
+        Server testServer = new Server(3333, writer, validator);
+        testServer.run();
+//        try {
+//            Thread.sleep(10000);
+//        } catch (InterruptedException e) {
+//            throw new RuntimeException(e);
+//        }
         testServer.exit();
     }
 }

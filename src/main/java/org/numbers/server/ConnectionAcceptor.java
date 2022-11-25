@@ -1,0 +1,35 @@
+package org.numbers.server;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.nio.channels.SocketChannel;
+
+public class ConnectionAcceptor implements Runnable{
+
+    private static final Logger logger = LoggerFactory.getLogger(Server.class);
+    private final Server server;
+
+
+    public ConnectionAcceptor(Server server) {
+        this.server = server;
+    }
+
+    @Override
+    public void run() {
+        while (server.isAlive()) {
+            try {
+                SocketChannel channel = server.accept();
+                if (channel != null) {
+                    server.connect(channel);
+                }
+            } catch (Exception e) {
+                logger.warn("Exception when waiting for connections", e);
+            }
+        }
+
+        //TODO Update statistics
+
+        //TODO print statistics every 10 sec
+    }
+}

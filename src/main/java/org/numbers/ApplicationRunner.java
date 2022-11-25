@@ -15,10 +15,10 @@ public class ApplicationRunner {
 
     public static void main(String[] args)
     {
-        Server server = new Server(resolvePortNumber(args), new NumberFileWriter(), new NumberValidator());
-        while (server.isAlive()) {
-            server.acceptConnections();
-        }
+        NumberFileWriter writer = new NumberFileWriter();
+        NumberValidator validator = new NumberValidator();
+        Server server = new Server(resolvePortNumber(args), writer, validator);
+        server.run();
     }
 
     private static int resolvePortNumber(String[] args) {

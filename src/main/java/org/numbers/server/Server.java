@@ -1,72 +1,45 @@
 package org.numbers.server;
 
-import org.numbers.client.ClientTask;
 import org.numbers.exception.ApplicationException;
+import org.numbers.exception.ExceptionHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.nio.channels.ClosedChannelException;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Server {
 
     private static final Logger logger = LoggerFactory.getLogger(Server.class);
     private final MessageWriter writer;
     private final MessageValidator validator;
-    private final List<Connection> connections = new ArrayList<>();
     private final ServerSocketChannel server;
+    private final Queue<SocketChannel> connectionQueue = new ArrayBlockingQueue<>(5);
+    private final Map<String, Connection> connections = new ConcurrentHashMap<>();
     private boolean signalReceived;
 
     public Server(int port, MessageWriter writer, MessageValidator validator) {
+        this.writer = writer;
         this.validator = validator;
         try {
-            this.writer = writer;
             server = ServerSocketChannel.open();
             server.bind(new InetSocketAddress(port));
+            server.configureBlocking(false);
             //TODO recreate file
         } catch (IOException e) {
             throw new ApplicationException("Can't create server", e);
         }
     }
 
-    public void acceptConnections() {
-        try {
-            connect(server.accept());
-        } catch (ClosedChannelException e) {
-            logger.debug("Exception trying to connect to closed server");
-        } catch (IOException e) {
-            logger.warn("Exception when waiting for connections", e);
-        }
-
-        //TODO Update statistics
-
-        //TODO print statistics every 10 sec
-    }
-
-    private void connect(SocketChannel channel) {
-        //TODO Limit thread numbers
-        if (isAlive()) {
-            Connection connection = new Connection(channel, connections.size());
-            connections.add(connection);
-            Thread t1 = new Thread(createTask(connection));
-            t1.setUncaughtExceptionHandler(new ExceptionHandler(this));
-            t1.start();
-        }
-    }
-
-    private Runnable createTask(Connection connection) {
-        return new ClientTask(connection, validator, writer);
-    }
-
     public void exit() {
         logger.info("Closing server ... ");
         signalReceived = true;
-        connections.forEach(Connection::close);
         try {
             server.close();
         } catch (IOException e) {
@@ -77,5 +50,37 @@ public class Server {
 
     public boolean isAlive() {
         return !signalReceived;
+    }
+
+    public SocketChannel accept() throws IOException {
+        return server.accept();
+    }
+
+    public void run() {
+        Thread acceptanceTask = new Thread(new ConnectionAcceptor(this));
+        acceptanceTask.setUncaughtExceptionHandler(new ExceptionHandler(this));
+
+        Thread processingTask = new Thread(new ConnectionProcessor(connections, validator, writer, () -> true));
+        processingTask.setUncaughtExceptionHandler(new ExceptionHandler(this));
+
+        acceptanceTask.start();
+        processingTask.start();
+    }
+
+    public void connect(SocketChannel channel) throws IOException {
+        if (connectionQueue.offer(channel)) {
+            if (channel != null) {
+                try {
+                    channel.configureBlocking(false);
+                    String id = "Client #" + (connections.size() + 1);
+                    Connection connection = new Connection(channel, id);
+                    connections.put(id, connection);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        } else {
+            channel.close();
+        }
     }
 }
