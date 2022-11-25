@@ -22,7 +22,8 @@ public class ApplicationRunner {
         recreateFile();
         var writer = new NumberFileWriter();
         var validator = new NumberValidator();
-        new Server(resolvePortNumber(args), writer, validator).run();
+        var server = new Server(resolvePortNumber(args), writer, validator);
+        server.run();
     }
 
     private static void recreateFile() {

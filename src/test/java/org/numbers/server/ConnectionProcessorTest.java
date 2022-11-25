@@ -1,4 +1,4 @@
-package org.numbers.client;
+package org.numbers.server;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -9,8 +9,6 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.numbers.file.NumberFileWriter;
 import org.numbers.file.NumberValidator;
-import org.numbers.server.Connection;
-import org.numbers.server.ConnectionProcessor;
 
 import java.util.Map;
 import java.util.Optional;
