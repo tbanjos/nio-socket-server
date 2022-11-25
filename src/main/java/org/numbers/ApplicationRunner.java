@@ -1,6 +1,5 @@
 package org.numbers;
 
-
 import org.numbers.file.NumberFileConsumer;
 import org.numbers.file.NumberValidator;
 import org.numbers.server.Server;
@@ -10,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Timer;
 
 public class ApplicationRunner {
 
@@ -22,8 +22,10 @@ public class ApplicationRunner {
         recreateFile();
         var writer = new NumberFileConsumer();
         var validator = new NumberValidator();
+        var report = new StatisticsReportTask();
         var server = new Server(resolvePortNumber(args), writer, validator);
         server.run();
+        new Timer().schedule(report,0, 10000);
     }
 
     private static void recreateFile() {

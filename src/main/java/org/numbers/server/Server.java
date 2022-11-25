@@ -71,10 +71,11 @@ public class Server {
         connectionQueue.removeIf(entry -> !entry.isOpen());
         if (channel != null) {
             channel.configureBlocking(false);
+            //TODO get new unique id
             var id = "Client #" + (connectionQueue.size() + 1);
             ClientConnection clientConnection = new ClientConnection(channel, id);
             if (!connectionQueue.offer(clientConnection)) {
-                channel.close();
+                clientConnection.close();
             }
         }
     }

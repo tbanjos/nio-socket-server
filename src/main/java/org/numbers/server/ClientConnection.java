@@ -24,12 +24,12 @@ public class ClientConnection implements MessageProducer {
     public ClientConnection(SocketChannel channel, String clientId) {
         //TODO add prefix to logger
         LOG_PREFIX = clientId.concat(" | ");
-        logger.debug(LOG_PREFIX + "Connected");
+        logger.info(LOG_PREFIX + "Connected");
         this.channel = channel;
     }
 
     public void close() {
-        logger.debug(LOG_PREFIX + "Closing connection");
+        logger.info(LOG_PREFIX + "Closing connection");
         if (isOpen()) {
             try {
                 channel.close();

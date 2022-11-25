@@ -8,6 +8,5 @@ public class NumberValidator implements MessageValidator {
 
     public boolean isValid(String message){
         return message.matches(NUMBER_REGEX);
-        //TODO Deduplicate
     }
 }
