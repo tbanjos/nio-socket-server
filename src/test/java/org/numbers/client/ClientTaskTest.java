@@ -7,8 +7,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.numbers.file.FileWriter;
-import org.numbers.file.InputValidator;
+import org.numbers.file.NumberFileWriter;
+import org.numbers.file.NumberValidator;
 import org.numbers.server.Connection;
 
 import java.util.Optional;
@@ -24,10 +24,10 @@ class ClientTaskTest {
     Connection connection;
 
     @Mock
-    FileWriter fileWriter;
+    NumberFileWriter numberFileWriter;
 
     @Mock
-    InputValidator validator;
+    NumberValidator validator;
 
     @InjectMocks
     ClientTask clientTask;
@@ -45,7 +45,7 @@ class ClientTaskTest {
 
         clientTask.run();
 
-        verify(fileWriter, times(2)).write(valueRead);
+        verify(numberFileWriter, times(2)).write(valueRead);
     }
 
     @Test
@@ -55,7 +55,7 @@ class ClientTaskTest {
         clientTask.run();
 
         verify(validator, never()).isValid(anyString());
-        verify(fileWriter, never()).write(anyString());
+        verify(numberFileWriter, never()).write(anyString());
     }
 
     @Test
@@ -66,7 +66,7 @@ class ClientTaskTest {
 
         clientTask.run();
 
-        verify(fileWriter, never()).write(valueRead);
+        verify(numberFileWriter, never()).write(valueRead);
         verify(connection).close();
     }
 
@@ -78,7 +78,7 @@ class ClientTaskTest {
         RuntimeException thrown = Assertions.assertThrows(RuntimeException.class, () -> clientTask.run());
 
         assertEquals(exceptionMessage, thrown.getMessage());
-        verify(fileWriter, never()).write(anyString());
+        verify(numberFileWriter, never()).write(anyString());
     }
 
     @Test
@@ -88,6 +88,6 @@ class ClientTaskTest {
         clientTask.run();
 
         verify(connection, never()).read();
-        verify(fileWriter, never()).write(anyString());
+        verify(numberFileWriter, never()).write(anyString());
     }
 }

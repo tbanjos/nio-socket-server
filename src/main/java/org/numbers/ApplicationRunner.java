@@ -1,6 +1,8 @@
 package org.numbers;
 
 
+import org.numbers.file.NumberFileWriter;
+import org.numbers.file.NumberValidator;
 import org.numbers.server.Server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,7 +15,7 @@ public class ApplicationRunner {
 
     public static void main(String[] args)
     {
-        Server server = new Server(resolvePortNumber(args));
+        Server server = new Server(resolvePortNumber(args), new NumberFileWriter(), new NumberValidator());
         while (server.isAlive()) {
             server.acceptConnections();
         }

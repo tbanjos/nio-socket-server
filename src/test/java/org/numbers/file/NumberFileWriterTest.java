@@ -12,12 +12,12 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class FileWriterTest {
+class NumberFileWriterTest {
 
     static final String TEST_FILE_NAME = "test_file.txt";
     static Path testFilePath = Paths.get(TEST_FILE_NAME);
 
-    static FileWriter fileWriter = new FileWriter("TEST");
+    static NumberFileWriter numberFileWriter = new NumberFileWriter("TEST");
 
     @AfterAll
     static void tearDown(){
@@ -28,9 +28,9 @@ class FileWriterTest {
 
     @Test
     void shouldWriteToFile() throws IOException {
-        fileWriter.write("line1");
-        fileWriter.write("line2");
-        fileWriter.write("line3");
+        numberFileWriter.write("line1");
+        numberFileWriter.write("line2");
+        numberFileWriter.write("line3");
 
         List<String> strings = Files.readAllLines(testFilePath);
         assertTrue(strings.contains("line1"));
@@ -40,7 +40,7 @@ class FileWriterTest {
 
     @Test
     void shouldNotWriteToFileWhenUsingDifferentLog() throws IOException {
-        Logger logger = LoggerFactory.getLogger(FileWriterTest.class);
+        Logger logger = LoggerFactory.getLogger(NumberFileWriterTest.class);
 
         logger.info("somethingElse");
 

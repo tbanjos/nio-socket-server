@@ -2,8 +2,6 @@ package org.numbers.server;
 
 import org.numbers.client.ClientTask;
 import org.numbers.exception.ApplicationException;
-import org.numbers.file.FileWriter;
-import org.numbers.file.InputValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,14 +16,16 @@ import java.util.List;
 public class Server {
 
     private static final Logger logger = LoggerFactory.getLogger(Server.class);
-    private final FileWriter fileWriter = new FileWriter();
-    private final InputValidator validator = new InputValidator();
+    private final MessageWriter writer;
+    private final MessageValidator validator;
     private final List<Connection> connections = new ArrayList<>();
     private final ServerSocketChannel server;
     private boolean signalReceived;
 
-    public Server(int port) {
+    public Server(int port, MessageWriter writer, MessageValidator validator) {
+        this.validator = validator;
         try {
+            this.writer = writer;
             server = ServerSocketChannel.open();
             server.bind(new InetSocketAddress(port));
             //TODO recreate file
@@ -60,7 +60,7 @@ public class Server {
     }
 
     private Runnable createTask(Connection connection) {
-        return new ClientTask(connection, validator, fileWriter);
+        return new ClientTask(connection, validator, writer);
     }
 
     public void exit() {

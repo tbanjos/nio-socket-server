@@ -1,23 +1,24 @@
 package org.numbers.file;
 
+import org.numbers.server.MessageWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class FileWriter {
+public class NumberFileWriter implements MessageWriter {
 
     private static final String DEFAULT_LOG_NAME = "NUMBERS";
 
     private final Logger fileLogger;
 
-    public FileWriter() {
+    public NumberFileWriter() {
         this(DEFAULT_LOG_NAME);
     }
 
-    public FileWriter(String logName) {
+    public NumberFileWriter(String logName) {
         fileLogger = LoggerFactory.getLogger(logName);
     }
 
-    public void write(String line) {
-        fileLogger.info(line);
+    public void write(String message) {
+        fileLogger.info(message);
     }
 }
