@@ -1,17 +1,20 @@
-package org.numbers.server;
+package org.numbers.message;
 
-import java.util.Map;
+import java.util.Queue;
 import java.util.function.BooleanSupplier;
 
-public class ConnectionProcessor implements Runnable {
+public class MessageProcessor implements Runnable {
 
     private final MessageWriter writer;
     private final MessageValidator validator;
-    private final Map<String, Connection> connections;
+    private final Queue<MessageChannel> channels;
     private final BooleanSupplier shouldProcess;
 
-    public ConnectionProcessor(Map<String, Connection> connections, MessageValidator validator, MessageWriter writer, BooleanSupplier shouldProcess) {
-        this.connections = connections;
+    public MessageProcessor(Queue<MessageChannel> channels,
+                            MessageValidator validator,
+                            MessageWriter writer,
+                            BooleanSupplier shouldProcess) {
+        this.channels = channels;
         this.validator = validator;
         this.writer = writer;
         this.shouldProcess = shouldProcess;
@@ -20,15 +23,15 @@ public class ConnectionProcessor implements Runnable {
     @Override
     public void run() {
         while (shouldProcess.getAsBoolean()) {
-            connections.forEach((key, connection) -> {
-                if (connection.isAlive()) {
-                    var input = connection.read();
+            channels.forEach(channel -> {
+                if (channel.isOpen()) {
+                    var input = channel.read();
                     if (input.isPresent()) {
                         var value = input.get();
                         if (validator.isValid(value)) {
                             writer.write(value);
                         } else {
-                            connection.close();
+                            channel.close();
                         }
                     }
                 }

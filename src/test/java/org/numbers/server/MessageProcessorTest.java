@@ -9,18 +9,20 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.numbers.file.NumberFileWriter;
 import org.numbers.file.NumberValidator;
+import org.numbers.message.MessageProcessor;
+import org.numbers.message.MessageChannel;
 
-import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ArrayBlockingQueue;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class ConnectionProcessorTest {
+class MessageProcessorTest {
     @Mock
-    Connection connection;
+    ClientConnection clientConnection;
 
     @Mock
     NumberFileWriter numberFileWriter;
@@ -28,34 +30,36 @@ class ConnectionProcessorTest {
     @Mock
     NumberValidator validator;
 
-    ConnectionProcessor connectionProcessor;
+    MessageProcessor messageProcessor;
 
-    ConnectionProcessorTest(){
+    MessageProcessorTest(){
         MockitoAnnotations.openMocks(this);
     }
 
     @BeforeEach
     void setUp() {
-        when(connection.isAlive()).thenReturn(true, true, false);
-        connectionProcessor = new ConnectionProcessor(Map.of("test", connection), validator, numberFileWriter, () -> connection.isAlive());
+        when(clientConnection.isOpen()).thenReturn(true, true, false);
+        var queue = new ArrayBlockingQueue<MessageChannel>(1);
+        queue.add(clientConnection);
+        messageProcessor = new MessageProcessor(queue, validator, numberFileWriter, () -> clientConnection.isOpen());
     }
 
     @Test
     void shouldWriteValidValue() {
         String valueRead = "valueRead";
-        when(connection.read()).thenReturn(Optional.of(valueRead));
+        when(clientConnection.read()).thenReturn(Optional.of(valueRead));
         when(validator.isValid(anyString())).thenReturn(true);
 
-        connectionProcessor.run();
+        messageProcessor.run();
 
         verify(numberFileWriter).write(valueRead);
     }
 
     @Test
     void shouldIgnoreEmptyValue() {
-        when(connection.read()).thenReturn(Optional.empty());
+        when(clientConnection.read()).thenReturn(Optional.empty());
 
-        connectionProcessor.run();
+        messageProcessor.run();
 
         verify(validator, never()).isValid(anyString());
         verify(numberFileWriter, never()).write(anyString());
@@ -64,21 +68,21 @@ class ConnectionProcessorTest {
     @Test
     void shouldCloseConnectionWhenInvalidValue() {
         String valueRead = "somethingNotValid";
-        when(connection.read()).thenReturn(Optional.of(valueRead));
+        when(clientConnection.read()).thenReturn(Optional.of(valueRead));
         when(validator.isValid(valueRead)).thenReturn(false);
 
-        connectionProcessor.run();
+        messageProcessor.run();
 
         verify(numberFileWriter, never()).write(valueRead);
-        verify(connection).close();
+        verify(clientConnection).close();
     }
 
     @Test
     void shouldPropagateException() {
         String exceptionMessage = "something went wrong";
-        when(connection.read()).thenThrow(new RuntimeException(exceptionMessage));
+        when(clientConnection.read()).thenThrow(new RuntimeException(exceptionMessage));
 
-        RuntimeException thrown = Assertions.assertThrows(RuntimeException.class, () -> connectionProcessor.run());
+        RuntimeException thrown = Assertions.assertThrows(RuntimeException.class, () -> messageProcessor.run());
 
         assertEquals(exceptionMessage, thrown.getMessage());
         verify(numberFileWriter, never()).write(anyString());
@@ -86,11 +90,11 @@ class ConnectionProcessorTest {
 
     @Test
     void shouldNotReadWhenConnectionIsClosed() {
-        when(connection.isAlive()).thenReturn( false);
+        when(clientConnection.isOpen()).thenReturn( false);
 
-        connectionProcessor.run();
+        messageProcessor.run();
 
-        verify(connection, never()).read();
+        verify(clientConnection, never()).read();
         verify(numberFileWriter, never()).write(anyString());
     }
 }

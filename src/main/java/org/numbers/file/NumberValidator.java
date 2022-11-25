@@ -1,6 +1,6 @@
 package org.numbers.file;
 
-import org.numbers.server.MessageValidator;
+import org.numbers.message.MessageValidator;
 
 public class NumberValidator implements MessageValidator {
 

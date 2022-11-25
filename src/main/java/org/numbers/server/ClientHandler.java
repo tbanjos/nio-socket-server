@@ -3,13 +3,12 @@ package org.numbers.server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ConnectionAcceptor implements Runnable{
+public class ClientHandler implements Runnable{
 
     private static final Logger logger = LoggerFactory.getLogger(Server.class);
     private final Server server;
 
-
-    public ConnectionAcceptor(Server server) {
+    public ClientHandler(Server server) {
         this.server = server;
     }
 

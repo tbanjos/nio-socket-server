@@ -1,0 +1,11 @@
+package org.numbers.message;
+
+import java.util.Optional;
+
+public interface MessageChannel {
+    boolean isOpen();
+
+    Optional<String> read();
+
+    void close();
+}

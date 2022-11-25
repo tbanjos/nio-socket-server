@@ -2,6 +2,10 @@ package org.numbers.server;
 
 import org.numbers.exception.ApplicationException;
 import org.numbers.exception.ExceptionHandler;
+import org.numbers.message.MessageProcessor;
+import org.numbers.message.MessageChannel;
+import org.numbers.message.MessageValidator;
+import org.numbers.message.MessageWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,10 +13,8 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class Server {
 
@@ -20,8 +22,7 @@ public class Server {
     private final MessageWriter writer;
     private final MessageValidator validator;
     private final ServerSocketChannel server;
-    private final Queue<SocketChannel> connectionQueue = new ArrayBlockingQueue<>(5);
-    private final Map<String, Connection> connections = new ConcurrentHashMap<>();
+    private final Queue<MessageChannel> connectionQueue = new ArrayBlockingQueue<>(5);
     private boolean signalReceived;
 
     public Server(int port, MessageWriter writer, MessageValidator validator) {
@@ -56,10 +57,10 @@ public class Server {
     }
 
     public void run() {
-        var acceptanceTask = new Thread(new ConnectionAcceptor(this));
+        var acceptanceTask = new Thread(new ClientHandler(this));
         acceptanceTask.setUncaughtExceptionHandler(new ExceptionHandler(this));
 
-        var processingTask = new Thread(new ConnectionProcessor(connections, validator, writer, () -> true));
+        var processingTask = new Thread(new MessageProcessor(connectionQueue, validator, writer, () -> true));
         processingTask.setUncaughtExceptionHandler(new ExceptionHandler(this));
 
         acceptanceTask.start();
@@ -67,20 +68,14 @@ public class Server {
     }
 
     public void connect(SocketChannel channel) throws IOException {
-        connectionQueue.removeIf(entry -> !entry.isConnected());
-        if (connectionQueue.offer(channel)) {
-            if (channel != null) {
-                try {
-                    channel.configureBlocking(false);
-                    var id = "Client #" + (connections.size() + 1);
-                    Connection connection = new Connection(channel, id);
-                    connections.put(id, connection);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
+        connectionQueue.removeIf(entry -> !entry.isOpen());
+        if (channel != null) {
+            channel.configureBlocking(false);
+            var id = "Client #" + (connectionQueue.size() + 1);
+            ClientConnection clientConnection = new ClientConnection(channel, id);
+            if (!connectionQueue.offer(clientConnection)) {
+                channel.close();
             }
-        } else {
-            channel.close();
         }
     }
 }

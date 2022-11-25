@@ -1,6 +1,7 @@
 package org.numbers.server;
 
 import org.numbers.exception.TerminationException;
+import org.numbers.message.MessageChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,9 +12,9 @@ import java.nio.channels.SocketChannel;
 import java.util.Objects;
 import java.util.Optional;
 
-public class Connection {
+public class ClientConnection implements MessageChannel {
 
-    private static final Logger logger = LoggerFactory.getLogger(Connection.class);
+    private static final Logger logger = LoggerFactory.getLogger(ClientConnection.class);
 
     private final String LOG_PREFIX;
 
@@ -21,7 +22,7 @@ public class Connection {
     public static final String TERMINATION_SEQUENCE = "terminate";
     private final SocketChannel channel;
 
-    public Connection(SocketChannel channel, String clientId) {
+    public ClientConnection(SocketChannel channel, String clientId) {
         //TODO add prefix to logger
         LOG_PREFIX = clientId.concat(" | ");
         logger.debug(LOG_PREFIX + "Connected");
@@ -30,7 +31,7 @@ public class Connection {
 
     public void close() {
         logger.debug(LOG_PREFIX + "Closing connection");
-        if (isAlive()) {
+        if (isOpen()) {
             try {
                 channel.close();
             } catch (IOException e) {
@@ -76,7 +77,7 @@ public class Connection {
         return Optional.of(line);
     }
 
-    public boolean isAlive() {
+    public boolean isOpen() {
         return channel.isConnected();
     }
 }

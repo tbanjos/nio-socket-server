@@ -1,4 +1,4 @@
-package org.numbers.server;
+package org.numbers.message;
 
 public interface MessageValidator {
 

@@ -1,6 +1,6 @@
 # Numbers
 
-This application accepts inputs of 9-digit numbers via socket connection. The input is stored in a log file after deduplication.  
+This application accepts inputs of 9-digit numbers via socket clientConnection. The input is stored in a log file after deduplication.  
 Connection is limited to 5 concurrent clients at time.
 
 ---
