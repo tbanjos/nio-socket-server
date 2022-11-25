@@ -67,6 +67,7 @@ public class Server {
     }
 
     public void connect(SocketChannel channel) throws IOException {
+        connectionQueue.removeIf(entry -> !entry.isConnected());
         if (connectionQueue.offer(channel)) {
             if (channel != null) {
                 try {
