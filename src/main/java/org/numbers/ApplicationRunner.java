@@ -3,6 +3,7 @@ package org.numbers;
 import org.numbers.file.NumberFileConsumer;
 import org.numbers.file.NumberValidator;
 import org.numbers.server.Server;
+import org.numbers.statistics.StatisticsReportTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

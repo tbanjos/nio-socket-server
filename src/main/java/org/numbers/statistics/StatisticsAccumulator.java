@@ -1,4 +1,4 @@
-package org.numbers;
+package org.numbers.statistics;
 
 import java.util.concurrent.atomic.AtomicInteger;
 

@@ -1,6 +1,6 @@
 package org.numbers.file;
 
-import org.numbers.StatisticsAccumulator;
+import org.numbers.statistics.StatisticsAccumulator;
 import org.numbers.message.MessageConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -25,6 +25,8 @@ public class Server {
     private final Queue<MessageProducer> connectionQueue = new ArrayBlockingQueue<>(5);
     private boolean signalReceived;
 
+    private static int idCounter;
+
     public Server(int port, MessageConsumer writer, MessageValidator validator) {
         this.writer = writer;
         this.validator = validator;
@@ -71,8 +73,7 @@ public class Server {
         connectionQueue.removeIf(entry -> !entry.isOpen());
         if (channel != null) {
             channel.configureBlocking(false);
-            //TODO get new unique id
-            var id = "Client #" + (connectionQueue.size() + 1);
+            var id = "Client #" + (idCounter++);
             ClientConnection clientConnection = new ClientConnection(channel, id);
             if (!connectionQueue.offer(clientConnection)) {
                 clientConnection.close();

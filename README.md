@@ -22,7 +22,7 @@ java Server 4000
 Use telnet protocol to connect to server on the configured port. 
 Every new line corresponds to a new input to the server.  
 The server will save valid non-existent 9-digit inputs at the log file.  
-Invalid inputs are discarded.
+Invalid inputs are discarded and the connection to client is terminated.
 
 If the keyword `terminate` is sent, the server will disconnect from all clients and shutdown.
 
@@ -35,3 +35,9 @@ telnet localhost 4000
 terminate
 
 ```
+
+### Future improvements
+- Move parameters configuration to properties file (E.g server port, number of concurrent connections, file name)
+- Use Selector for handling connections
+- Better handling of termination signal without throwing exception
+- Better error handling
