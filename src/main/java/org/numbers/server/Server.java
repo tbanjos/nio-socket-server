@@ -19,17 +19,11 @@ import java.util.concurrent.ArrayBlockingQueue;
 public class Server {
 
     private static final Logger logger = LoggerFactory.getLogger(Server.class);
-    private final MessageConsumer writer;
-    private final MessageValidator validator;
+    private static final int MAX_CONCURRENT_CLIENTS = 5;
     private final ServerSocketChannel server;
-    private final Queue<MessageProducer> connectionQueue = new ArrayBlockingQueue<>(5);
-    private boolean signalReceived;
+    private final ExecutorService executor = Executors.newFixedThreadPool(MAX_CONCURRENT_CLIENTS);
 
-    private static int idCounter;
-
-    public Server(int port, MessageConsumer writer, MessageValidator validator) {
-        this.writer = writer;
-        this.validator = validator;
+    public Server(int port) {
         try {
             server = ServerSocketChannel.open();
             server.bind(new InetSocketAddress(port));
@@ -39,45 +33,16 @@ public class Server {
         }
     }
 
-    public void exit() {
-        logger.info("Closing server ... ");
-        signalReceived = true;
-        try {
-            server.close();
-        } catch (IOException e) {
-            logger.warn("Exception when closing the server");
-        }
-        System.exit(0);
-    }
-
-    public boolean isAlive() {
-        return !signalReceived;
-    }
-
-    public SocketChannel accept() throws IOException {
-        return server.accept();
-    }
-
     public void run() {
-        var acceptanceTask = new Thread(new ClientHandler(this));
-        acceptanceTask.setUncaughtExceptionHandler(new ExceptionHandler(this));
-
-        var processingTask = new Thread(new MessageProcessor(connectionQueue, validator, writer, () -> true));
-        processingTask.setUncaughtExceptionHandler(new ExceptionHandler(this));
-
-        acceptanceTask.start();
-        processingTask.start();
-    }
-
-    public void connect(SocketChannel channel) throws IOException {
-        connectionQueue.removeIf(entry -> !entry.isOpen());
-        if (channel != null) {
-            channel.configureBlocking(false);
-            var id = "Client #" + (idCounter++);
-            ClientConnection clientConnection = new ClientConnection(channel, id);
-            if (!connectionQueue.offer(clientConnection)) {
-                clientConnection.close();
-            }
-        }
-    }
+        try {
+          while (true) {
+                System.out.println("Waiting for client connection...");
+                Socket clientSocket = serverSocket.accept();
+                System.out.println("Client connected: " + clientSocket.getInetAddress().getHostAddress());
+                executor.submit(new ClientHandler(clientSocket));
+          }
+       } catch (Exception e) {
+            e.printStackTrace();
+       }
+   }
 }
