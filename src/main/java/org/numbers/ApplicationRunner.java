@@ -21,10 +21,8 @@ public class ApplicationRunner {
     public static void main(String[] args)
     {
         recreateFile();
-        var writer = new NumberFileConsumer();
-        var validator = new NumberValidator();
         var report = new StatisticsReportTask();
-        var server = new Server(resolvePortNumber(args), writer, validator);
+        var server = new Server(resolvePortNumber(args));
         server.run();
         new Timer().schedule(report,0, 10000);
     }
